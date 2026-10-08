@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:minichatapp/Feature/common/widgets/app_avatar.dart';
+import 'package:minichatapp/Feature/common/widgets/avatar_picker_bottom_sheet.dart';
+import 'package:minichatapp/core/storage/token_storage.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 import '../../data/datasources/register_remote_datasource.dart';
 import '../../data/repositories/register_repository_impl.dart';
@@ -11,6 +15,9 @@ import '../bloc/register_bloc.dart';
 import '../bloc/register_event.dart';
 import '../bloc/register_state.dart';
 import 'package:minichatapp/Feature/Login/presentation/widgets/custom_text_field.dart';
+import 'package:minichatapp/Feature/Login/presentation/pages/login_page.dart';
+import 'package:minichatapp/Feature/common/widgets/app_bottom_dialog.dart';
+import 'package:minichatapp/core/network/auth_api_client.dart';
 
 /// The Register screen built with Clean Architecture & BLoC.
 class RegisterPage extends StatelessWidget {
@@ -53,6 +60,17 @@ class _RegisterViewState extends State<_RegisterView> {
   String? _passwordError;
   String? _confirmPasswordError;
 
+  File? _avatarFile;
+
+  Future<void> _pickAvatar() async {
+    final picked = await AvatarPickerHelper.showAvatarPickerBottomSheet(context);
+    if (!mounted || picked == null) return;
+    setState(() {
+      _avatarFile = picked;
+    });
+    await TokenStorage.instance.saveAvatarPath(picked.path);
+  }
+
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -80,6 +98,8 @@ class _RegisterViewState extends State<_RegisterView> {
 
     if (emailOrPhone.isEmpty) {
       emailOrPhoneErr = lang.enterEmailOrPhone;
+    } else if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(emailOrPhone)) {
+      emailOrPhoneErr = 'Email không hợp lệ (Ví dụ: user@gmail.com)';
     }
 
     if (password.isEmpty) {
@@ -167,30 +187,50 @@ class _RegisterViewState extends State<_RegisterView> {
       ),
       body: SafeArea(
         child: BlocConsumer<RegisterBloc, RegisterState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state is RegisterFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    state.errorMessage,
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
-                  ),
-                  backgroundColor: Colors.redAccent,
-                  behavior: SnackBarBehavior.floating,
-                ),
+              await AppBottomDialog.showError(
+                context: context,
+                title: 'Đăng ký thất bại',
+                message: state.errorMessage,
+                primaryButtonText: 'Thử lại',
               );
             } else if (state is RegisterSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    lang.registerSuccess,
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
-                  ),
-                  backgroundColor: const Color(0xFF007DFE),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              final registeredEmail = _emailOrPhoneController.text.trim();
+
+              // Nếu người dùng đã chọn ảnh đại diện lúc đăng ký, tải ngay lên Database
+              if (_avatarFile != null) {
+                try {
+                  debugPrint('🚀 [RegisterPage]: Tải ảnh đại diện lên Database cho tài khoản mới...');
+                  await AuthApiClient().uploadAvatar(_avatarFile!);
+                  debugPrint('✅ [RegisterPage]: Tải ảnh đại diện lên Database thành công!');
+                } catch (e) {
+                  debugPrint('⚠️ [RegisterPage]: Chưa thể tải avatar lên server: $e');
+                }
+              }
+
+              // Xóa token đăng ký tạm để người dùng đăng nhập chính thức
+              await TokenStorage.instance.deleteToken();
+
+              if (!context.mounted) return;
+              // Hiển thị Dialog dưới dạng Bottom Sheet theo yêu cầu người dùng
+              await AppBottomDialog.showSuccess(
+                context: context,
+                title: 'Đăng ký tài khoản thành công!',
+                message:
+                    'Tài khoản $registeredEmail đã được tạo thành công.\nVui lòng đăng nhập để bắt đầu trải nghiệm!',
+                primaryButtonText: 'Đăng nhập ngay',
               );
-              Navigator.of(context).pop();
+
+              if (!context.mounted) return;
+              // Quay lại trang đăng nhập (LoginPage) và truyền lại email vừa đăng ký
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(registeredEmail);
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              }
             }
           },
           builder: (context, state) {
@@ -201,6 +241,46 @@ class _RegisterViewState extends State<_RegisterView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 0. Avatar Picker
+                  Center(
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: _pickAvatar,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color(0xFF007DFE).withValues(alpha: 0.2),
+                                width: 3,
+                              ),
+                            ),
+                            child: AppAvatar(
+                              name: _fullNameController.text.isNotEmpty
+                                  ? _fullNameController.text
+                                  : 'Mini Chat',
+                              size: 84,
+                              imageFile: _avatarFile,
+                              showCameraBadge: true,
+                              onCameraTap: _pickAvatar,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Ảnh đại diện',
+                          style: GoogleFonts.nunito(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
                   // 1. Full name
                   _buildLabel(lang.fullName),
                   _buildCapsuleInput(

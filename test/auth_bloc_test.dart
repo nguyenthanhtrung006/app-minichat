@@ -24,12 +24,20 @@ class MockLoginRepository implements LoginRepository {
     required String emailOrPhone,
     required String password,
   }) async {
-    return UserEntity(id: 'test_1', emailOrPhone: emailOrPhone);
+    return UserEntity(
+      id: 1,
+      email: emailOrPhone,
+      fullName: 'Test User',
+    );
   }
 
   @override
   Future<UserEntity> loginWithSocial(SocialProvider provider) async {
-    return const UserEntity(id: 'social_1', emailOrPhone: 'user@social.com');
+    return const UserEntity(
+      id: 2,
+      email: 'user@social.com',
+      fullName: 'Social User',
+    );
   }
 }
 
@@ -40,7 +48,29 @@ class MockRegisterRepository implements RegisterRepository {
 
 class MockForgotPasswordRepository implements ForgotPasswordRepository {
   @override
-  Future<bool> sendResetCode(String emailOrPhone) async => true;
+  Future<String> sendResetCode(String emailOrPhone) async =>
+      'Đã gửi mã xác nhận đến $emailOrPhone';
+
+  @override
+  Future<String> verifyOtp({required String email, required String otp}) async {
+    if (otp == '123456') {
+      return 'Xác thực OTP thành công.';
+    }
+    throw Exception('Mã OTP không chính xác.');
+  }
+
+  @override
+  Future<String> resendOtp(String email) async =>
+      'Mã xác thực OTP đã được gửi về email của bạn. Vui lòng kiểm tra hộp thư!';
+
+  @override
+  Future<String> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    String? confirmPassword,
+  }) async =>
+      'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.';
 }
 
 void main() {
@@ -107,8 +137,102 @@ void main() {
       await expectLater(
         bloc.stream,
         emitsInOrder([
-          const ForgotPasswordLoading(),
-          const ForgotPasswordCodeSent('test@example.com'),
+          const ForgotPasswordLoading('Đang gửi mã xác nhận...'),
+          const ForgotPasswordCodeSent('test@example.com',
+              message: 'Đã gửi mã xác nhận đến test@example.com'),
+        ]),
+      );
+      bloc.close();
+    });
+
+    test('ForgotPasswordBloc emits ForgotPasswordOtpVerified on valid OTP', () async {
+      final repo = MockForgotPasswordRepository();
+      final bloc = ForgotPasswordBloc(
+        sendResetCodeUseCase: SendResetCodeUseCase(repository: repo),
+      );
+
+      bloc.add(const VerifyOtpRequested(
+        email: 'test@example.com',
+        otp: '123456',
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          const ForgotPasswordLoading('Đang kiểm tra mã OTP...'),
+          const ForgotPasswordOtpVerified(
+            email: 'test@example.com',
+            otp: '123456',
+            message: 'Xác thực OTP thành công.',
+          ),
+        ]),
+      );
+      bloc.close();
+    });
+
+    test('ForgotPasswordBloc emits ForgotPasswordFailure on invalid OTP', () async {
+      final repo = MockForgotPasswordRepository();
+      final bloc = ForgotPasswordBloc(
+        sendResetCodeUseCase: SendResetCodeUseCase(repository: repo),
+      );
+
+      bloc.add(const VerifyOtpRequested(
+        email: 'test@example.com',
+        otp: '999999',
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          const ForgotPasswordLoading('Đang kiểm tra mã OTP...'),
+          const ForgotPasswordFailure('Mã OTP không chính xác.'),
+        ]),
+      );
+      bloc.close();
+    });
+
+    test('ForgotPasswordBloc emits ForgotPasswordResendOtpSuccess on resend OTP', () async {
+      final repo = MockForgotPasswordRepository();
+      final bloc = ForgotPasswordBloc(
+        sendResetCodeUseCase: SendResetCodeUseCase(repository: repo),
+      );
+
+      bloc.add(const ResendOtpRequested('test@example.com'));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          const ForgotPasswordLoading('Đang gửi lại mã OTP...'),
+          const ForgotPasswordResendOtpSuccess(
+            message:
+                'Mã xác thực OTP đã được gửi về email của bạn. Vui lòng kiểm tra hộp thư!',
+            cooldownSeconds: 60,
+          ),
+        ]),
+      );
+      bloc.close();
+    });
+
+    test('ForgotPasswordBloc emits ForgotPasswordResetSuccess on reset password', () async {
+      final repo = MockForgotPasswordRepository();
+      final bloc = ForgotPasswordBloc(
+        sendResetCodeUseCase: SendResetCodeUseCase(repository: repo),
+      );
+
+      bloc.add(const ResetPasswordRequested(
+        email: 'test@example.com',
+        otp: '123456',
+        newPassword: 'newpassword123',
+        confirmPassword: 'newpassword123',
+      ));
+
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          const ForgotPasswordLoading('Đang đặt lại mật khẩu mới...'),
+          const ForgotPasswordResetSuccess(
+            message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.',
+          ),
         ]),
       );
       bloc.close();

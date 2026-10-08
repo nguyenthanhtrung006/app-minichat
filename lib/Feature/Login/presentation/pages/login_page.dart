@@ -185,7 +185,7 @@ class _LoginViewState extends State<_LoginView> {
                     },
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: const Icon(
-                      Icons.smartphone_rounded,
+                      Icons.mail_outline_rounded,
                       color: Color(0xFF94A3B8),
                       size: 20,
                     ),
@@ -362,12 +362,23 @@ class _LoginViewState extends State<_LoginView> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
+                        onTap: () async {
+                          final registeredEmail =
+                              await Navigator.of(context).push<String>(
                             MaterialPageRoute(
                               builder: (_) => const RegisterPage(),
                             ),
                           );
+                          if (registeredEmail != null &&
+                              registeredEmail.isNotEmpty &&
+                              mounted) {
+                            setState(() {
+                              _emailOrPhoneController.text = registeredEmail;
+                              _passwordController.clear();
+                              _emailOrPhoneError = null;
+                              _passwordError = null;
+                            });
+                          }
                         },
                         child: Text(
                           lang.register,

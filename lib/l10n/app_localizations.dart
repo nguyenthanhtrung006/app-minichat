@@ -98,6 +98,19 @@ abstract class AppLocalizations {
   String get alreadyHaveAccount;
   String get registerSuccess;
   String get resetCodeSentPrefix;
+  String get otpVerification;
+  String get enterOtp;
+  String get otpMustBe6Digits;
+  String get resendOtp;
+  String get resendOtpIn;
+  String get newPassword;
+  String get newPasswordHint;
+  String get confirmNewPassword;
+  String get confirmNewPasswordHint;
+  String get resetPasswordButton;
+  String get resetPasswordSuccess;
+  String get changeEmail;
+  String get otpSentToEmail;
 
   // Validation
   String get enterEmailOrPhone;

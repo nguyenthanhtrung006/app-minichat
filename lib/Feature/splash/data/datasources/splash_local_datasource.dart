@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:minichatapp/core/storage/token_storage.dart';
 
 /// Data source interface for splash initialization tasks.
 abstract class SplashLocalDataSource {
@@ -11,6 +12,11 @@ abstract class SplashLocalDataSource {
 
 /// Implementation of [SplashLocalDataSource]
 class SplashLocalDataSourceImpl implements SplashLocalDataSource {
+  final TokenStorage tokenStorage;
+
+  SplashLocalDataSourceImpl({TokenStorage? tokenStorage})
+      : tokenStorage = tokenStorage ?? TokenStorage.instance;
+
   @override
   Stream<double> loadInitialData() async* {
     // Stage 1: Load configurations and local caches
@@ -36,8 +42,7 @@ class SplashLocalDataSourceImpl implements SplashLocalDataSource {
 
   @override
   Future<bool> hasSavedToken() async {
-    // In actual implementation, check SharedPreferences or FlutterSecureStorage
-    await Future.delayed(const Duration(milliseconds: 100));
-    return false; // Default to false so user navigates to landing/login
+    // Kiểm tra token lưu trong FlutterSecureStorage
+    return await tokenStorage.hasToken();
   }
 }

@@ -32,13 +32,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerTitle => 'Create Account';
 
   @override
-  String get phoneOrEmail => 'Phone / Email';
+  String get phoneOrEmail => 'Email';
 
   @override
-  String get phoneOrEmailHint => 'Enter phone number or email';
+  String get phoneOrEmailHint => 'Enter your email address';
 
   @override
-  String get emailOrPhone => 'Email or phone number';
+  String get emailOrPhone => 'Email';
 
   @override
   String get password => 'Password';
@@ -66,7 +66,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPasswordInstruction =>
-      'Enter your email or phone number,\nwe will send you a verification code.';
+      'Enter your email address,\nwe will send you a verification code.';
 
   @override
   String get sendCode => 'Send Code';
@@ -96,7 +96,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetCodeSentPrefix => 'Verification code sent to';
 
   @override
-  String get enterEmailOrPhone => 'Please enter phone number or email';
+  String get otpVerification => 'OTP Verification';
+
+  @override
+  String get enterOtp => 'Please enter OTP code';
+
+  @override
+  String get otpMustBe6Digits => 'OTP must be 6 digits';
+
+  @override
+  String get resendOtp => 'Resend OTP';
+
+  @override
+  String get resendOtpIn => 'Resend in';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get newPasswordHint => 'Minimum 6 characters';
+
+  @override
+  String get confirmNewPassword => 'Confirm New Password';
+
+  @override
+  String get confirmNewPasswordHint => 'Re-enter new password';
+
+  @override
+  String get resetPasswordButton => 'Reset Password';
+
+  @override
+  String get resetPasswordSuccess =>
+      'Password reset successfully! Please sign in with your new password.';
+
+  @override
+  String get changeEmail => 'Change email';
+
+  @override
+  String get otpSentToEmail => 'Verification OTP has been sent to email:';
+
+  @override
+  String get enterEmailOrPhone => 'Please enter your email address';
 
   @override
   String get enterPassword => 'Please enter your password';

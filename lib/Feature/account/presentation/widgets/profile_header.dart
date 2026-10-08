@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:minichatapp/Feature/common/widgets/app_avatar.dart';
@@ -12,7 +13,10 @@ class ProfileHeader extends StatelessWidget {
   final int friendsCount;
   final int postsCount;
   final int groupsCount;
+  final String? avatarUrl;
+  final File? avatarFile;
   final VoidCallback onEditProfile;
+  final VoidCallback? onCameraTap;
 
   const ProfileHeader({
     super.key,
@@ -22,7 +26,10 @@ class ProfileHeader extends StatelessWidget {
     this.friendsCount = 128,
     this.postsCount = 56,
     this.groupsCount = 12,
+    this.avatarUrl,
+    this.avatarFile,
     required this.onEditProfile,
+    this.onCameraTap,
   });
 
   @override
@@ -31,70 +38,84 @@ class ProfileHeader extends StatelessWidget {
 
     return Column(
       children: [
-        // 1. Cover Photo & Avatar Stack
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            // Cover Photo with Gradient Overlay
-            Container(
-              height: 150,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF60A5FA), Color(0xFF1E40AF)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                image: DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800',
-                  ),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 12.0, top: 4.0),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.settings_outlined,
-                        color: Colors.white,
-                        size: 26,
+        // 1. Cover Photo & Avatar Stack (bounded height so hit-testing reaches avatar & camera badge)
+        SizedBox(
+          height: 206,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              // Cover Photo with Gradient Overlay
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 150,
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF60A5FA), Color(0xFF1E40AF)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800',
                       ),
-                      onPressed: () {},
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 12.0, top: 4.0),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.settings_outlined,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                          onPressed: () {},
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            // Overlapping Profile Avatar with Camera Button
-            Positioned(
-              bottom: -50,
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 4,
+              // Overlapping Profile Avatar with Camera Button
+              Positioned(
+                top: 98,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onCameraTap,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 4,
+                      ),
+                    ),
+                    child: AppAvatar(
+                      name: fullName,
+                      size: 96,
+                      imageUrl: avatarUrl,
+                      imageFile: avatarFile,
+                      showCameraBadge: true,
+                      onCameraTap: onCameraTap,
+                    ),
                   ),
                 ),
-                child: AppAvatar(
-                  name: fullName,
-                  size: 96,
-                  showCameraBadge: true,
-                  onCameraTap: () {},
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
 
-        const SizedBox(height: 56),
+        const SizedBox(height: 8),
 
         // 2. Name & Bio
         Text(

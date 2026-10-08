@@ -4,7 +4,12 @@ import 'package:minichatapp/l10n/app_localizations.dart';
 
 /// Settings and options menu card on the Account screen.
 class ProfileMenuCard extends StatelessWidget {
-  const ProfileMenuCard({super.key});
+  final VoidCallback? onLogout;
+
+  const ProfileMenuCard({
+    super.key,
+    this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +69,16 @@ class ProfileMenuCard extends StatelessWidget {
             title: lang.settings,
             onTap: () {},
           ),
+          if (onLogout != null) ...[
+            _buildDivider(),
+            _buildItem(
+              icon: Icons.logout_rounded,
+              title: 'Đăng xuất',
+              iconColor: const Color(0xFFEF4444),
+              textColor: const Color(0xFFEF4444),
+              onTap: onLogout!,
+            ),
+          ],
         ],
       ),
     );
@@ -84,6 +99,8 @@ class ProfileMenuCard extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    Color? iconColor,
+    Color? textColor,
   }) {
     return InkWell(
       onTap: onTap,
@@ -95,7 +112,7 @@ class ProfileMenuCard extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: const Color(0xFF475569),
+              color: iconColor ?? const Color(0xFF475569),
               size: 22,
             ),
             const SizedBox(width: 14),
@@ -105,7 +122,7 @@ class ProfileMenuCard extends StatelessWidget {
                 style: GoogleFonts.nunito(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E293B),
+                  color: textColor ?? const Color(0xFF1E293B),
                 ),
               ),
             ),

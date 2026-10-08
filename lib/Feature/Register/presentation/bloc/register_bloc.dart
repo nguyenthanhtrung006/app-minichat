@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -43,9 +44,12 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     emit(const RegisterLoading());
     try {
       await registerUseCase(p);
+      debugPrint('🎉 [RegisterBloc]: Đăng ký tài khoản thành công cho: ${p.emailOrPhone}');
       emit(const RegisterSuccess());
     } catch (e) {
-      emit(RegisterFailure(e.toString().replaceAll('Exception: ', '')));
+      final msg = e.toString().replaceAll('Exception: ', '');
+      debugPrint('ℹ️ [RegisterBloc]: $msg');
+      emit(RegisterFailure(msg));
     }
   }
 }

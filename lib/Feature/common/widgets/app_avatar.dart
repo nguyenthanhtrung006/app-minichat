@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -10,6 +11,7 @@ class AppAvatar extends StatelessWidget {
   final double size;
   final String name;
   final String? imageUrl;
+  final File? imageFile;
   final bool? isOnline;
   final bool isGroup;
   final bool showCameraBadge;
@@ -20,6 +22,7 @@ class AppAvatar extends StatelessWidget {
     this.size = 50,
     required this.name,
     this.imageUrl,
+    this.imageFile,
     this.isOnline,
     this.isGroup = false,
     this.showCameraBadge = false,
@@ -75,14 +78,31 @@ class AppAvatar extends StatelessWidget {
           ),
         ),
       );
-    } else if (imageUrl != null && imageUrl!.isNotEmpty) {
+    } else if (imageFile != null) {
       avatarContent = Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           image: DecorationImage(
-            image: NetworkImage(imageUrl!),
+            image: FileImage(imageFile!),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else if (imageUrl != null && imageUrl!.isNotEmpty) {
+      final ImageProvider imageProvider =
+          (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'))
+              ? NetworkImage(imageUrl!)
+              : FileImage(File(imageUrl!));
+
+      avatarContent = Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            image: imageProvider,
             fit: BoxFit.cover,
           ),
         ),
@@ -154,6 +174,7 @@ class AppAvatar extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: onCameraTap,
               child: Container(
                 width: size * 0.32,

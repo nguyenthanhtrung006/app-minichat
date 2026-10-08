@@ -12,16 +12,60 @@ class ForgotPasswordInitial extends ForgotPasswordState {
 }
 
 class ForgotPasswordLoading extends ForgotPasswordState {
-  const ForgotPasswordLoading();
+  final String? loadingMessage;
+  const ForgotPasswordLoading([this.loadingMessage]);
+
+  @override
+  List<Object?> get props => [loadingMessage];
 }
 
 class ForgotPasswordCodeSent extends ForgotPasswordState {
   final String emailOrPhone;
+  final String message;
 
-  const ForgotPasswordCodeSent(this.emailOrPhone);
+  const ForgotPasswordCodeSent(this.emailOrPhone, {this.message = ''});
 
   @override
-  List<Object?> get props => [emailOrPhone];
+  List<Object?> get props => [emailOrPhone, message];
+}
+
+class ForgotPasswordOtpVerified extends ForgotPasswordState {
+  final String email;
+  final String otp;
+  final String message;
+
+  const ForgotPasswordOtpVerified({
+    required this.email,
+    required this.otp,
+    this.message = 'Xác thực OTP thành công.',
+  });
+
+  @override
+  List<Object?> get props => [email, otp, message];
+}
+
+class ForgotPasswordResendOtpSuccess extends ForgotPasswordState {
+  final String message;
+  final int cooldownSeconds;
+
+  const ForgotPasswordResendOtpSuccess({
+    required this.message,
+    this.cooldownSeconds = 60,
+  });
+
+  @override
+  List<Object?> get props => [message, cooldownSeconds];
+}
+
+class ForgotPasswordResetSuccess extends ForgotPasswordState {
+  final String message;
+
+  const ForgotPasswordResetSuccess({
+    this.message = 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.',
+  });
+
+  @override
+  List<Object?> get props => [message];
 }
 
 class ForgotPasswordFailure extends ForgotPasswordState {

@@ -33,7 +33,7 @@ void main() {
 
       expect(find.text('Đăng ký tài khoản'), findsOneWidget);
       expect(find.text('Họ và tên'), findsOneWidget);
-      expect(find.text('Số điện thoại / Email'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
       expect(find.text('Mật khẩu'), findsOneWidget);
       expect(find.text('Xác nhận mật khẩu'), findsOneWidget);
       expect(find.text('Đăng ký'), findsOneWidget);
@@ -49,11 +49,11 @@ void main() {
       expect(find.byType(ForgotPasswordHeaderIcon), findsOneWidget);
       expect(
         find.text(
-          'Nhập email hoặc số điện thoại\ncủa bạn, chúng tôi sẽ gửi mã xác nhận.',
+          'Nhập địa chỉ email của bạn,\nchúng tôi sẽ gửi mã xác nhận.',
         ),
         findsOneWidget,
       );
-      expect(find.text('Email hoặc số điện thoại'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
       expect(find.text('Gửi mã'), findsOneWidget);
       expect(find.text('Quay lại đăng nhập'), findsOneWidget);
     });

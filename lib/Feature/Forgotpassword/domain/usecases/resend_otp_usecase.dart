@@ -1,11 +1,11 @@
 import '../repositories/forgot_password_repository.dart';
 
-class SendResetCodeUseCase {
+class ResendOtpUseCase {
   final ForgotPasswordRepository repository;
 
-  SendResetCodeUseCase({required this.repository});
+  ResendOtpUseCase({required this.repository});
 
   Future<String> call(String email) {
-    return repository.sendResetCode(email);
+    return repository.resendOtp(email);
   }
 }

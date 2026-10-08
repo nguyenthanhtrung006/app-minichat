@@ -32,13 +32,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get registerTitle => 'Đăng ký tài khoản';
 
   @override
-  String get phoneOrEmail => 'Số điện thoại / Email';
+  String get phoneOrEmail => 'Email';
 
   @override
-  String get phoneOrEmailHint => 'Nhập số điện thoại hoặc email';
+  String get phoneOrEmailHint => 'Nhập địa chỉ email';
 
   @override
-  String get emailOrPhone => 'Email hoặc số điện thoại';
+  String get emailOrPhone => 'Email';
 
   @override
   String get password => 'Mật khẩu';
@@ -66,7 +66,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get forgotPasswordInstruction =>
-      'Nhập email hoặc số điện thoại\ncủa bạn, chúng tôi sẽ gửi mã xác nhận.';
+      'Nhập địa chỉ email của bạn,\nchúng tôi sẽ gửi mã xác nhận.';
 
   @override
   String get sendCode => 'Gửi mã';
@@ -90,13 +90,53 @@ class AppLocalizationsVi extends AppLocalizations {
   String get alreadyHaveAccount => 'Đã có tài khoản? ';
 
   @override
-  String get registerSuccess => 'Đăng ký thành công! Vui lòng đăng nhập.';
+  String get registerSuccess => 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.';
 
   @override
   String get resetCodeSentPrefix => 'Đã gửi mã xác nhận đến';
 
   @override
-  String get enterEmailOrPhone => 'Vui lòng nhập số điện thoại hoặc email';
+  String get otpVerification => 'Xác thực OTP';
+
+  @override
+  String get enterOtp => 'Vui lòng nhập mã OTP';
+
+  @override
+  String get otpMustBe6Digits => 'Mã OTP phải gồm 6 chữ số';
+
+  @override
+  String get resendOtp => 'Gửi lại mã OTP';
+
+  @override
+  String get resendOtpIn => 'Gửi lại sau';
+
+  @override
+  String get newPassword => 'Mật khẩu mới';
+
+  @override
+  String get newPasswordHint => 'Tối thiểu 6 ký tự';
+
+  @override
+  String get confirmNewPassword => 'Xác nhận mật khẩu mới';
+
+  @override
+  String get confirmNewPasswordHint => 'Nhập lại mật khẩu mới';
+
+  @override
+  String get resetPasswordButton => 'Đổi mật khẩu';
+
+  @override
+  String get resetPasswordSuccess =>
+      'Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.';
+
+  @override
+  String get changeEmail => 'Đổi email khác';
+
+  @override
+  String get otpSentToEmail => 'Mã xác thực OTP đã được gửi đến email:';
+
+  @override
+  String get enterEmailOrPhone => 'Vui lòng nhập địa chỉ email';
 
   @override
   String get enterPassword => 'Vui lòng nhập mật khẩu';

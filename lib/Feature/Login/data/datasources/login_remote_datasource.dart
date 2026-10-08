@@ -1,3 +1,4 @@
+import 'package:minichatapp/core/network/auth_api_client.dart';
 import '../../domain/repositories/login_repository.dart';
 import '../models/user_model.dart';
 
@@ -11,33 +12,34 @@ abstract class LoginRemoteDataSource {
 }
 
 class LoginRemoteDataSourceImpl implements LoginRemoteDataSource {
+  final AuthApiClient authApiClient;
+
+  LoginRemoteDataSourceImpl({AuthApiClient? authApiClient})
+      : authApiClient = authApiClient ?? AuthApiClient();
+
   @override
   Future<UserModel> loginWithEmailOrPhone({
     required String emailOrPhone,
     required String password,
   }) async {
-    // Simulated remote network request
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    if (password.length < 6) {
-      throw Exception('Mật khẩu phải có tối thiểu 6 ký tự');
-    }
-
-    return UserModel(
-      id: 'user_123',
-      emailOrPhone: emailOrPhone,
-      fullName: 'Người dùng Mini Chat',
+    // Gọi API thật tới https://api.trungmobileapp.id.vn/api/auth/login
+    final result = await authApiClient.login(
+      email: emailOrPhone,
+      password: password,
     );
+    return result.user;
   }
 
   @override
   Future<UserModel> loginWithSocial(SocialProvider provider) async {
-    await Future.delayed(const Duration(milliseconds: 700));
-
+    // API hiện tại theo Docs tập trung vào Email/Password
+    // Dự phòng cho Social login khi backend hỗ trợ
+    await Future.delayed(const Duration(milliseconds: 500));
     return UserModel(
-      id: 'social_${provider.name}_123',
-      emailOrPhone: 'user@${provider.name}.com',
+      id: 9999,
+      email: 'user@${provider.name}.com',
       fullName: '${provider == SocialProvider.google ? "Google" : "Facebook"} User',
+      isOnline: true,
     );
   }
 }

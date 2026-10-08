@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 import '../../domain/usecases/login_with_email_usecase.dart';
@@ -38,9 +39,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emailOrPhone: event.emailOrPhone.trim(),
         password: event.password,
       );
+      debugPrint('🎉 [LoginBloc]: Đăng nhập thành công: ${user.email} (ID: ${user.id})');
       emit(LoginSuccess(user));
     } catch (e) {
-      emit(LoginFailure(e.toString().replaceAll('Exception: ', '')));
+      final msg = e.toString().replaceAll('Exception: ', '');
+      debugPrint('ℹ️ [LoginBloc]: $msg');
+      emit(LoginFailure(msg));
     }
   }
 
