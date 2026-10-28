@@ -19,10 +19,14 @@ class SendMessageUseCase {
   Future<MessageItem> call({
     required String contactName,
     required String text,
+    int? conversationId,
+    String? targetUserId,
   }) async {
     return await repository.sendMessage(
       contactName: contactName,
       text: text,
+      conversationId: conversationId,
+      targetUserId: targetUserId,
     );
   }
 }

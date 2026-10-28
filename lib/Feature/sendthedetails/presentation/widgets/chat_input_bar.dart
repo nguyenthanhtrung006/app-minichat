@@ -5,12 +5,14 @@ import 'package:minichatapp/l10n/app_localizations.dart';
 /// Bottom chat text input bar matching Image 2.
 class ChatInputBar extends StatefulWidget {
   final ValueChanged<String> onSend;
+  final ValueChanged<bool>? onTyping;
   final VoidCallback onToggleAttachment;
   final bool isAttachmentOpen;
 
   const ChatInputBar({
     super.key,
     required this.onSend,
+    this.onTyping,
     required this.onToggleAttachment,
     required this.isAttachmentOpen,
   });
@@ -30,6 +32,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
       final can = _controller.text.trim().isNotEmpty;
       if (can != _canSend) {
         setState(() => _canSend = can);
+        widget.onTyping?.call(can);
       }
     });
   }

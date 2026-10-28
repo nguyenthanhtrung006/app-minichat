@@ -104,6 +104,7 @@ class AppAvatar extends StatelessWidget {
           image: DecorationImage(
             image: imageProvider,
             fit: BoxFit.cover,
+            onError: (exception, stackTrace) {},
           ),
         ),
       );

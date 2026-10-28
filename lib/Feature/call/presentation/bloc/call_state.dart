@@ -18,11 +18,29 @@ class CallLoading extends CallState {
 
 class CallLoaded extends CallState {
   final List<CallItem> calls;
+  final bool hasReachedMax;
+  final bool isLoadingMore;
 
-  const CallLoaded(this.calls);
+  const CallLoaded(
+    this.calls, {
+    this.hasReachedMax = false,
+    this.isLoadingMore = false,
+  });
+
+  CallLoaded copyWith({
+    List<CallItem>? calls,
+    bool? hasReachedMax,
+    bool? isLoadingMore,
+  }) {
+    return CallLoaded(
+      calls ?? this.calls,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
 
   @override
-  List<Object?> get props => [calls];
+  List<Object?> get props => [calls, hasReachedMax, isLoadingMore];
 }
 
 class CallError extends CallState {

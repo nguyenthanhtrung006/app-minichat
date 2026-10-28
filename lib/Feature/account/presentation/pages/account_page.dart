@@ -5,7 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:minichatapp/Feature/Login/presentation/pages/login_page.dart';
 import 'package:minichatapp/Feature/common/widgets/app_bottom_dialog.dart';
 import 'package:minichatapp/Feature/common/widgets/avatar_picker_bottom_sheet.dart';
+import 'package:minichatapp/Feature/friend/data/datasources/friend_remote_datasource.dart';
+import 'package:minichatapp/Feature/qr/presentation/pages/my_qr_screen.dart';
 import 'package:minichatapp/core/network/auth_api_client.dart';
+import 'package:minichatapp/core/network/friend_api_client.dart';
+import 'package:minichatapp/core/network/signalr_service.dart';
+import 'package:minichatapp/core/session/auth_session_manager.dart';
 import 'package:minichatapp/core/storage/token_storage.dart';
 import '../../data/datasources/account_remote_datasource.dart';
 import '../../data/repositories/account_repository_impl.dart';
@@ -129,7 +134,17 @@ class _AccountViewState extends State<_AccountView> {
         // 1. Xóa Token và phiên đăng nhập
         await AuthApiClient().logout();
 
-        // 2. Chuyển hướng về màn hình Đăng nhập
+        // 2. Ngắt kết nối SignalR & dọn bộ nhớ tạm
+        try {
+          await SignalRService.instance.disconnect();
+        } catch (_) {}
+        SignalRService.instance.currentUserEmail = null;
+        SignalRService.instance.currentUserId = null;
+        AuthSessionManager.instance.currentUserEmail = null;
+        AuthSessionManager.instance.currentUserId = null;
+        FriendRemoteDataSourceImpl.instance.clearCache();
+
+        // 3. Chuyển hướng về màn hình Đăng nhập
         if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -169,10 +184,18 @@ class _AccountViewState extends State<_AccountView> {
           if (state is AccountLoaded) {
             final profile = state.profile;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Column(
-                children: [
+            return RefreshIndicator(
+              color: const Color(0xFF007DFE),
+              backgroundColor: Colors.white,
+              onRefresh: () async {
+                context.read<AccountBloc>().add(const AccountStarted());
+                await Future.delayed(const Duration(milliseconds: 500));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  children: [
                   // 1. Top Cover, Avatar, Name & Stats
                   ProfileHeader(
                     fullName: profile.fullName,
@@ -192,6 +215,21 @@ class _AccountViewState extends State<_AccountView> {
                   // 2. Navigation Settings Menu Card
                   ProfileMenuCard(
                     onLogout: _showLogoutDialog,
+                    onMyQr: () async {
+                      final myQrData = await FriendApiClient().getMyQr();
+                      final qrString = myQrData?['qrCodeString']?.toString() ??
+                          'minichat://add/${profile.id}?name=${Uri.encodeComponent(profile.fullName)}&avatar=${Uri.encodeComponent(profile.avatarUrl ?? '')}';
+                      if (!context.mounted) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MyQrScreen(
+                            qrCodeString: qrString,
+                            fullName: profile.fullName,
+                            avatarUrl: profile.avatarUrl,
+                          ),
+                        ),
+                      );
+                    },
                   ),
 
                   // 3. Status Update Card
@@ -237,8 +275,9 @@ class _AccountViewState extends State<_AccountView> {
                   const SizedBox(height: 16),
                 ],
               ),
-            );
-          }
+            ),
+          );
+        }
 
           return const SizedBox.shrink();
         },

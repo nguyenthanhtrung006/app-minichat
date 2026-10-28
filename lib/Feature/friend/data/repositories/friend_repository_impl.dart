@@ -21,4 +21,21 @@ class FriendRepositoryImpl implements FriendRepository {
   Future<void> toggleFriendRequest(String id) async {
     await remoteDataSource.toggleFriendRequest(id);
   }
+
+  @override
+  Future<void> addFriend(FriendItem friend) async {
+    await remoteDataSource.addFriend(friend);
+  }
+
+  @override
+  Future<void> addFriendRequest(FriendRequest request) async {
+    await remoteDataSource.addFriendRequest(request);
+  }
+
+  @override
+  Stream<List<FriendItem>> get friendsStream => remoteDataSource.friendsStream;
+
+  @override
+  Stream<List<FriendRequest>> get requestsStream =>
+      remoteDataSource.requestsStream;
 }

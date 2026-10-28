@@ -8,7 +8,7 @@ class CallRepositoryImpl implements CallRepository {
   const CallRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<CallItem>> getCallHistory() async {
-    return await remoteDataSource.getCallHistory();
+  Future<List<CallItem>> getCallHistory({int page = 1, int pageSize = 30}) async {
+    return await remoteDataSource.getCallHistory(page: page, pageSize: pageSize);
   }
 }

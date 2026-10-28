@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 
-/// Screen: "Không nghe máy" (No Answer / Missed Call).
+/// Screen: "Không nghe máy" (No Answer / Missed Call / User Offline).
 /// Phát âm thanh [khongnghemay.mp3]
 class CallNoAnswerView extends StatefulWidget {
   final VoidCallback onDismiss;
   final VoidCallback? onRetry;
+  final String? message;
 
   const CallNoAnswerView({
     super.key,
     required this.onDismiss,
     this.onRetry,
+    this.message,
   });
 
   @override
@@ -42,6 +44,9 @@ class _CallNoAnswerViewState extends State<CallNoAnswerView> {
   @override
   Widget build(BuildContext context) {
     final lang = context.l10n;
+    final isOffline = widget.message != null &&
+        (widget.message!.toLowerCase().contains('trực tuyến') ||
+            widget.message!.toLowerCase().contains('offline'));
 
     return Center(
       child: Column(
@@ -51,39 +56,47 @@ class _CallNoAnswerViewState extends State<CallNoAnswerView> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: const Color(0xFFF59E0B),
+              color: isOffline ? const Color(0xFF64748B) : const Color(0xFFF59E0B),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+                  color: (isOffline ? const Color(0xFF64748B) : const Color(0xFFF59E0B))
+                      .withValues(alpha: 0.35),
                   blurRadius: 28,
                   spreadRadius: 4,
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.phone_missed_rounded,
+            child: Icon(
+              isOffline ? Icons.cloud_off_rounded : Icons.phone_missed_rounded,
               color: Colors.white,
               size: 40,
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            lang.noAnswer,
+            isOffline ? 'Đối phương không trực tuyến' : lang.noAnswer,
+            textAlign: TextAlign.center,
             style: GoogleFonts.nunito(
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            lang.recipientNoAnswer,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.7),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Text(
+              widget.message != null && widget.message!.isNotEmpty
+                  ? '${widget.message}\n(Người nhận chưa mở ứng dụng trên thiết bị khác)'
+                  : lang.recipientNoAnswer,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.8),
+                height: 1.4,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -99,14 +112,14 @@ class _CallNoAnswerViewState extends State<CallNoAnswerView> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.ring_volume_rounded,
-                  color: Color(0xFFFBBF24),
+                Icon(
+                  isOffline ? Icons.info_outline_rounded : Icons.ring_volume_rounded,
+                  color: isOffline ? const Color(0xFF94A3B8) : const Color(0xFFFBBF24),
                   size: 16,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Âm thanh không nghe máy...',
+                  isOffline ? 'Thông báo: Người nhận đang Offline' : 'Âm thanh không nghe máy...',
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -132,7 +145,7 @@ class _CallNoAnswerViewState extends State<CallNoAnswerView> {
                 ),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),

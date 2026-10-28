@@ -32,8 +32,9 @@ class SplashBloc extends Bloc<SplashEvent, SplashState> {
       (progress) {
         add(SplashProgressChanged(progress));
       },
-      onDone: () {
-        add(const SplashCompleted(isAuthenticated: false));
+      onDone: () async {
+        final isAuth = await initializeAppUseCase.checkAuthStatus();
+        add(SplashCompleted(isAuthenticated: isAuth));
       },
       onError: (error) {
         emit(SplashFailure(error.toString()));

@@ -5,5 +5,7 @@ abstract class ChatDetailRepository {
   Future<MessageItem> sendMessage({
     required String contactName,
     required String text,
+    int? conversationId,
+    String? targetUserId,
   });
 }

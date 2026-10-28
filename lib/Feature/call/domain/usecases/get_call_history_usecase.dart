@@ -6,7 +6,7 @@ class GetCallHistoryUseCase {
 
   const GetCallHistoryUseCase({required this.repository});
 
-  Future<List<CallItem>> call() async {
-    return await repository.getCallHistory();
+  Future<List<CallItem>> call({int page = 1, int pageSize = 30}) async {
+    return await repository.getCallHistory(page: page, pageSize: pageSize);
   }
 }

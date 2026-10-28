@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 import '../constants/api_constants.dart';
+import '../session/auth_session_manager.dart';
 import '../storage/token_storage.dart';
 import 'api_exception.dart';
 import 'api_response.dart';
@@ -85,6 +86,22 @@ class ApiClient {
     return _sendRequest<T>(
       method: 'GET',
       endpoint: endpoint,
+      requiresAuth: requiresAuth,
+      fromDataJson: fromDataJson,
+    );
+  }
+
+  /// Gửi DELETE Request
+  Future<ApiResponse<T>> delete<T>(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    bool requiresAuth = false,
+    T Function(dynamic dataJson)? fromDataJson,
+  }) async {
+    return _sendRequest<T>(
+      method: 'DELETE',
+      endpoint: endpoint,
+      body: body,
       requiresAuth: requiresAuth,
       fromDataJson: fromDataJson,
     );
@@ -199,9 +216,13 @@ class ApiClient {
             ? await _httpClient
                 .post(uri, headers: headers, body: jsonBody)
                 .timeout(const Duration(seconds: 8))
-            : await _httpClient
-                .get(uri, headers: headers)
-                .timeout(const Duration(seconds: 8));
+            : method == 'DELETE'
+                ? await _httpClient
+                    .delete(uri, headers: headers, body: jsonBody)
+                    .timeout(const Duration(seconds: 8))
+                : await _httpClient
+                    .get(uri, headers: headers)
+                    .timeout(const Duration(seconds: 8));
 
         lastResponse = response;
 
@@ -299,6 +320,9 @@ class ApiClient {
       case 401:
         debugPrint('🔒 [API 401 Unauthorized]: Phiên làm việc hết hạn hoặc chưa đăng nhập. Đang xóa token đã lưu...');
         tokenStorage.deleteToken();
+        AuthSessionManager.instance.handleForceLogout(
+          reason: 'Tài khoản của bạn đã được đăng nhập trên một thiết bị khác hoặc phiên đã hết hạn. Vui lòng đăng nhập lại!',
+        );
         throw UnauthorizedException();
 
       case 404:

@@ -45,6 +45,10 @@ class AuthApiClient {
     if (response.success && response.data != null) {
       // Lưu Access Token bảo mật theo khuyến nghị Docs 4.1
       await tokenStorage.saveToken(response.data!.token);
+      await tokenStorage.saveUserInfo(
+        email: response.data!.user.email.isNotEmpty ? response.data!.user.email : email,
+        userId: response.data!.user.id.toString(),
+      );
       return response.data!;
     }
 
@@ -79,6 +83,10 @@ class AuthApiClient {
     if (response.success && response.data != null) {
       // Lưu token vào storage để tự động đăng nhập luôn
       await tokenStorage.saveToken(response.data!.token);
+      await tokenStorage.saveUserInfo(
+        email: response.data!.user.email.isNotEmpty ? response.data!.user.email : email,
+        userId: response.data!.user.id.toString(),
+      );
       return response.data!;
     }
 
@@ -102,6 +110,10 @@ class AuthApiClient {
     );
 
     if (response.success && response.data != null) {
+      await tokenStorage.saveUserInfo(
+        email: response.data!.email,
+        userId: response.data!.id.toString(),
+      );
       return response.data!;
     }
 

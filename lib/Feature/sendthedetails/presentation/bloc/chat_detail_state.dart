@@ -18,11 +18,22 @@ class ChatDetailLoading extends ChatDetailState {
 
 class ChatDetailLoaded extends ChatDetailState {
   final List<MessageItem> messages;
+  final bool isContactTyping;
 
-  const ChatDetailLoaded(this.messages);
+  const ChatDetailLoaded(this.messages, {this.isContactTyping = false});
 
   @override
-  List<Object?> get props => [messages];
+  List<Object?> get props => [messages, isContactTyping];
+
+  ChatDetailLoaded copyWith({
+    List<MessageItem>? messages,
+    bool? isContactTyping,
+  }) {
+    return ChatDetailLoaded(
+      messages ?? this.messages,
+      isContactTyping: isContactTyping ?? this.isContactTyping,
+    );
+  }
 }
 
 class ChatDetailError extends ChatDetailState {

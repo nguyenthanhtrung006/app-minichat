@@ -27,4 +27,24 @@ class ApiConstants {
   static const String verifyOtpEndpoint = '/api/Auth/verify-otp';
   static const String resetPasswordEndpoint = '/api/Auth/reset-password';
   static const String resendOtpEndpoint = '/api/Auth/resend-otp';
+
+  // SignalR Hub Endpoint
+  static const String chatHubEndpoint = '/chatHub';
+  static String get chatHubUrl => '$activeBaseUrl$chatHubEndpoint';
+
+  // Friend Endpoints
+  static const String friendListEndpoint = '/api/Friend';
+  static const String friendRequestsEndpoint = '/api/Friend/requests';
+  static const String myQrEndpoint = '/api/Friend/my-qr';
+  static const String scanQrEndpoint = '/api/Friend/scan-qr';
+  static const String sendFriendRequestEndpoint = '/api/Friend/request';
+  static const String acceptFriendEndpoint = '/api/Friend/accept';
+  static const String rejectFriendEndpoint = '/api/Friend/reject';
+
+  // Call Endpoints & SignalR CallHub
+  static const String callHubEndpoint = '/callHub';
+  static String get callHubUrl => '$activeBaseUrl$callHubEndpoint';
+  static const String callHistoryEndpoint = '/api/Call/history';
+  static const String callIceServersEndpoint = '/api/Call/ice-servers';
+  static const String callEndEndpoint = '/api/Call/end';
 }

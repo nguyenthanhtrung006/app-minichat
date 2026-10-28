@@ -13,6 +13,8 @@ import 'package:minichatapp/Feature/calling/presentation/widgets/call_declined_v
 import 'package:minichatapp/Feature/calling/presentation/widgets/call_no_answer_view.dart';
 import 'package:minichatapp/Feature/calling/presentation/widgets/incoming_call_view.dart';
 import 'package:minichatapp/Feature/calling/presentation/widgets/outgoing_call_view.dart';
+import 'package:minichatapp/Feature/calling/data/services/call_signaling_service.dart';
+import 'package:minichatapp/core/session/auth_session_manager.dart';
 
 /// Calling Screen hosting [CallingBloc] and rendering full-screen call UI
 /// for Incoming, Outgoing, Active, and Declined call states.
@@ -24,11 +26,42 @@ class CallingPage extends StatelessWidget {
     required this.initialSession,
   });
 
+  /// Đăng ký bộ lắng nghe cuộc gọi đến toàn cục từ CallHub
+  static void registerGlobalCallHandler() {
+    CallSignalingService.instance.onIncomingCall = (data) {
+      final callerName = data['callerName']?.toString() ??
+          data['name']?.toString() ??
+          'Cuộc gọi đến';
+      final avatarUrl = data['avatarUrl']?.toString() ??
+          data['callerAvatarUrl']?.toString();
+      final callTypeStr = data['callType']?.toString().toLowerCase() ?? 'voice';
+      final isVideo = callTypeStr == 'video';
+      final sessionId = data['callSessionId']?.toString();
+      final callerId = data['callerId'] is int
+          ? data['callerId'] as int
+          : int.tryParse(data['callerId']?.toString() ?? '');
+
+      AuthSessionManager.navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => CallingPage.incoming(
+            name: callerName,
+            avatarUrl: avatarUrl,
+            type: isVideo ? CallType.video : CallType.audio,
+            callSessionId: sessionId,
+            callerUserId: callerId,
+          ),
+        ),
+      );
+    };
+  }
+
   /// Factory constructor for incoming call ("Nhận cuộc gọi")
   factory CallingPage.incoming({
     String name = 'Phương Thảo',
     String? avatarUrl,
     CallType type = CallType.audio,
+    String? callSessionId,
+    int? callerUserId,
   }) {
     return CallingPage(
       initialSession: CallSession(
@@ -36,6 +69,8 @@ class CallingPage extends StatelessWidget {
         callerAvatarUrl: avatarUrl,
         callType: type,
         callStatus: CallStatus.incoming,
+        callSessionId: callSessionId,
+        targetUserId: callerUserId,
       ),
     );
   }
@@ -45,6 +80,8 @@ class CallingPage extends StatelessWidget {
     String name = 'Lan Anh',
     String? avatarUrl,
     CallType type = CallType.audio,
+    int? targetUserId,
+    String? callSessionId,
   }) {
     return CallingPage(
       initialSession: CallSession(
@@ -52,6 +89,8 @@ class CallingPage extends StatelessWidget {
         callerAvatarUrl: avatarUrl,
         callType: type,
         callStatus: CallStatus.outgoing,
+        targetUserId: targetUserId,
+        callSessionId: callSessionId,
       ),
     );
   }
@@ -62,6 +101,8 @@ class CallingPage extends StatelessWidget {
     String? avatarUrl,
     CallType type = CallType.audio,
     int durationSeconds = 52,
+    String? callSessionId,
+    int? targetUserId,
   }) {
     return CallingPage(
       initialSession: CallSession(
@@ -70,6 +111,8 @@ class CallingPage extends StatelessWidget {
         callType: type,
         callStatus: CallStatus.active,
         durationSeconds: durationSeconds,
+        callSessionId: callSessionId,
+        targetUserId: targetUserId,
       ),
     );
   }
@@ -174,9 +217,6 @@ class _CallingPageContent extends StatelessWidget {
           onCancel: () => bloc.add(const CallEndPressed()),
           onSwitchCamera: () => bloc.add(const CallCameraSwitchPressed()),
           onToggleVideo: () => bloc.add(const CallVideoTogglePressed()),
-          onAccept: () => bloc.add(const CallAcceptPressed()),
-          onNoAnswer: () => bloc.add(const CallNoAnswerPressed()),
-          onDecline: () => bloc.add(const CallDeclinePressed()),
         );
 
       case CallStatus.active:
@@ -185,17 +225,20 @@ class _CallingPageContent extends StatelessWidget {
           onToggleMute: () => bloc.add(const CallMuteTogglePressed()),
           onToggleSpeaker: () => bloc.add(const CallSpeakerTogglePressed()),
           onToggleVideo: () => bloc.add(const CallVideoTogglePressed()),
+          onSwitchCamera: () => bloc.add(const CallCameraSwitchPressed()),
           onEndCall: () => bloc.add(const CallEndPressed()),
           onToggleWeakNetwork: () => bloc.add(const CallWeakNetworkToggled()),
         );
 
       case CallStatus.declined:
         return CallDeclinedView(
+          message: session.statusMessage,
           onDismiss: () => Navigator.of(context).maybePop(),
         );
 
       case CallStatus.noAnswer:
         return CallNoAnswerView(
+          message: session.statusMessage,
           onDismiss: () => Navigator.of(context).maybePop(),
         );
 

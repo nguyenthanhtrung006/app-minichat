@@ -11,6 +11,14 @@ class ChatStarted extends ChatEvent {
   const ChatStarted();
 }
 
+class ChatRefreshed extends ChatEvent {
+  const ChatRefreshed();
+}
+
+class ChatLoadMore extends ChatEvent {
+  const ChatLoadMore();
+}
+
 class ChatSearchChanged extends ChatEvent {
   final String query;
 

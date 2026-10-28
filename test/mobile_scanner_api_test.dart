@@ -22,10 +22,11 @@ void main() {
       expect(model.actionPayload, equals('GRP-99'));
     });
 
-    test('parses standard URL properly', () {
-      final model = QrCodeModel.fromRawString('https://flutter.dev');
-      expect(model.type, equals(QrCodeType.webUrl));
-      expect(model.actionPayload, equals('https://flutter.dev'));
+    test('parses minichat add friend link properly', () {
+      final model = QrCodeModel.fromRawString('minichat://add/8f7a91a2b3c4');
+      expect(model.type, equals(QrCodeType.userProfile));
+      expect(model.title, equals('Người bạn #8f7a91a2b3c4'));
+      expect(model.actionPayload, equals('8f7a91a2b3c4'));
     });
   });
 }

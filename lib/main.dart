@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'Feature/splash/presentation/pages/splash_page.dart';
+import 'core/session/auth_session_manager.dart';
 import 'l10n/app_localizations.dart';
 
 void main() {
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         final l10n = LocaleController.instance;
 
         return MaterialApp(
+          navigatorKey: AuthSessionManager.navigatorKey,
           title: l10n.appName,
           locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,

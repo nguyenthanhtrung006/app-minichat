@@ -7,10 +7,12 @@ import 'package:minichatapp/l10n/app_localizations.dart';
 /// Phát âm thanh [amthanhkhongtraloidienthoai.mp3]
 class CallDeclinedView extends StatefulWidget {
   final VoidCallback onDismiss;
+  final String? message;
 
   const CallDeclinedView({
     super.key,
     required this.onDismiss,
+    this.message,
   });
 
   @override
@@ -79,7 +81,10 @@ class _CallDeclinedViewState extends State<CallDeclinedView> {
             ),
             const SizedBox(height: 8),
             Text(
-              lang.youDeclinedCall,
+              widget.message != null && widget.message!.isNotEmpty
+                  ? widget.message!
+                  : lang.youDeclinedCall,
+              textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,

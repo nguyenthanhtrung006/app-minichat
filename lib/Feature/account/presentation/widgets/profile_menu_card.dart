@@ -5,10 +5,12 @@ import 'package:minichatapp/l10n/app_localizations.dart';
 /// Settings and options menu card on the Account screen.
 class ProfileMenuCard extends StatelessWidget {
   final VoidCallback? onLogout;
+  final VoidCallback? onMyQr;
 
   const ProfileMenuCard({
     super.key,
     this.onLogout,
+    this.onMyQr,
   });
 
   @override
@@ -39,6 +41,15 @@ class ProfileMenuCard extends StatelessWidget {
             title: lang.personalInfo,
             onTap: () {},
           ),
+          if (onMyQr != null) ...[
+            _buildDivider(),
+            _buildItem(
+              icon: Icons.qr_code_2_rounded,
+              title: lang.myQrCode,
+              iconColor: const Color(0xFF007DFE),
+              onTap: onMyQr!,
+            ),
+          ],
           _buildDivider(),
           _buildItem(
             icon: Icons.photo_library_outlined,

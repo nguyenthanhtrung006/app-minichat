@@ -10,3 +10,11 @@ abstract class CallEvent extends Equatable {
 class CallStarted extends CallEvent {
   const CallStarted();
 }
+
+class CallRefreshed extends CallEvent {
+  const CallRefreshed();
+}
+
+class CallLoadMore extends CallEvent {
+  const CallLoadMore();
+}

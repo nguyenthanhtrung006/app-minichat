@@ -16,10 +16,14 @@ class ChatDetailRepositoryImpl implements ChatDetailRepository {
   Future<MessageItem> sendMessage({
     required String contactName,
     required String text,
+    int? conversationId,
+    String? targetUserId,
   }) async {
     return await remoteDataSource.sendMessage(
       contactName: contactName,
       text: text,
+      conversationId: conversationId,
+      targetUserId: targetUserId,
     );
   }
 }

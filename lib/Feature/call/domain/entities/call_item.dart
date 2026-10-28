@@ -7,6 +7,7 @@ class CallItem {
   final CallDirection direction;
   final bool isVideo;
   final String? avatarUrl;
+  final int? targetUserId;
 
   const CallItem({
     required this.id,
@@ -15,6 +16,7 @@ class CallItem {
     required this.direction,
     this.isVideo = false,
     this.avatarUrl,
+    this.targetUserId,
   });
 
   String get labelText {

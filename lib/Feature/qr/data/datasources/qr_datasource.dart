@@ -17,6 +17,9 @@ class QrDatasourceImpl implements QrDatasource {
 
   final List<QrCodeModel> _presets = [
     QrCodeModel.fromRawString(
+      'minichat://add/8f7a91a2b3c4?name=Nguy%E1%BB%85n%20Thanh%20T%C3%B9ng&phone=0912345678',
+    ),
+    QrCodeModel.fromRawString(
       'minichat://user?name=Hoàng Minh Thảo&phone=0912345678&avatar=https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     ),
     QrCodeModel.fromRawString(

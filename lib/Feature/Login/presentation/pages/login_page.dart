@@ -4,6 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:minichatapp/Feature/Forgotpassword/presentation/pages/forgot_password_page.dart';
 import 'package:minichatapp/Feature/Register/presentation/pages/register_page.dart';
+import 'package:minichatapp/Feature/friend/data/datasources/friend_remote_datasource.dart';
+import 'package:minichatapp/core/network/signalr_service.dart';
+import 'package:minichatapp/core/session/auth_session_manager.dart';
+import 'package:minichatapp/core/storage/token_storage.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 import 'package:minichatapp/l10n/language_selector_button.dart';
 import '../../../home/presentation/pages/home_page.dart';
@@ -118,6 +122,12 @@ class _LoginViewState extends State<_LoginView> {
                 ),
               );
             } else if (state is LoginSuccess) {
+              final userEmail = _emailOrPhoneController.text.trim();
+              final userIdStr = state.user.id.toString();
+              TokenStorage.instance.saveUserInfo(email: userEmail, userId: userIdStr);
+              AuthSessionManager.instance.onLoginSuccess(email: userEmail, userId: userIdStr);
+              SignalRService.instance.initSignalR(email: userEmail, userId: userIdStr);
+              FriendRemoteDataSourceImpl.instance.syncWithDatabase();
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const HomePage(),

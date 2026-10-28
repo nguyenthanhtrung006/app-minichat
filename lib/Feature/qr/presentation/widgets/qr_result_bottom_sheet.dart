@@ -1,8 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:minichatapp/Feature/account/data/datasources/account_remote_datasource.dart';
 import 'package:minichatapp/Feature/common/widgets/app_avatar.dart';
+import 'package:minichatapp/Feature/chat/data/datasources/chat_remote_datasource.dart';
+import 'package:minichatapp/Feature/chat/domain/entities/chat_item.dart';
+import 'package:minichatapp/Feature/friend/data/datasources/friend_remote_datasource.dart';
+import 'package:minichatapp/Feature/friend/domain/entities/friend_entities.dart';
 import 'package:minichatapp/Feature/sendthedetails/presentation/pages/send_the_details_page.dart';
+import 'package:minichatapp/core/network/friend_api_client.dart';
+import 'package:minichatapp/core/network/signalr_service.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 import '../../domain/entities/qr_code_entity.dart';
 
@@ -186,19 +194,118 @@ class QrResultBottomSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(24),
                         ),
                       ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${lang.requestSent}: ${data.title}',
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
-                            ),
-                            backgroundColor: const Color(0xFF007DFE),
-                            behavior: SnackBarBehavior.floating,
+                      onPressed: () async {
+                        final friendId = data.actionPayload ??
+                            data.subtitle
+                                ?.replaceAll('ID: ', '')
+                                .replaceAll('Mã: ', '')
+                                .replaceAll('SĐT: ', '')
+                                .trim() ??
+                            DateTime.now().millisecondsSinceEpoch.toString();
+
+                        final targetId = int.tryParse(friendId);
+
+                        final newFriend = FriendItem(
+                          id: friendId,
+                          name: data.title,
+                          status: 'Đã kết bạn qua quét mã QR',
+                          isOnline: true,
+                          avatarUrl: data.avatarUrl,
+                        );
+
+                        // Lưu vào danh bạ bạn bè & đồng bộ bộ nhớ
+                        await FriendRemoteDataSourceImpl.instance
+                            .addFriend(newFriend);
+
+                        // Lưu vào lịch sử lời mời kết bạn
+                        await FriendRemoteDataSourceImpl.instance
+                            .addFriendRequest(
+                          FriendRequest(
+                            id: friendId,
+                            name: data.title,
+                            subtitle: 'Đã kết nối qua mã QR',
+                            avatarUrl: data.avatarUrl,
+                            isSent: true,
                           ),
                         );
-                        Navigator.of(context).pop();
-                        onScanAgain();
+
+                        // Gửi lời mời kết bạn lên Server Database
+                        try {
+                          await FriendApiClient().sendFriendRequest(
+                            targetUserId: targetId,
+                            qrData: data.rawValue,
+                          );
+                          debugPrint('✅ [QR Add Friend]: Đã gửi yêu cầu kết bạn lên Database.');
+                        } catch (e) {
+                          debugPrint('⚠️ [QR Add Friend]: Lỗi gửi yêu cầu kết bạn lên server: $e');
+                        }
+
+                        // Gửi thông báo kết bạn Realtime qua SignalR
+                        if (targetId != null && targetId > 0) {
+                          try {
+                            final profile = await AccountRemoteDataSourceImpl().getUserProfile();
+                            await SignalRService.instance.sendFriendRequestNotification(
+                              targetUserId: targetId,
+                              senderName: profile.fullName,
+                            );
+                          } catch (_) {}
+                        }
+
+                        // Đồng bộ lại từ Database để cập nhật tức thì
+                        unawaited(FriendRemoteDataSourceImpl.instance.syncWithDatabase());
+
+                        // Thêm vào danh sách cuộc trò chuyện
+                        ChatRemoteDataSourceImpl.instance.addOrUpdateChat(
+                          ChatItem(
+                            id: friendId,
+                            name: data.title,
+                            lastMessage: 'Đã kết bạn qua quét mã QR',
+                            time: 'Vừa xong',
+                            unreadCount: 0,
+                            isOnline: true,
+                            avatarUrl: data.avatarUrl,
+                          ),
+                        );
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '🎉 Đã thêm ${data.title} vào danh sách bạn bè!',
+                                style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w700),
+                              ),
+                              backgroundColor: const Color(0xFF16A34A),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 3),
+                              action: SnackBarAction(
+                                label: 'Nhắn tin',
+                                textColor: Colors.white,
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => SendTheDetailsPage(
+                                        contactName: data.title,
+                                        avatarUrl: data.avatarUrl,
+                                        isOnline: true,
+                                        targetUserId: data.actionPayload,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+
+                          // Đóng bottom sheet kết quả
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                          // Đóng màn hình quét QR để trở về danh bạ thấy ngay bạn mới
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop(true);
+                          }
+                        }
                       },
                     ),
                   ),
@@ -224,17 +331,66 @@ class QrResultBottomSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(24),
                         ),
                       ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => SendTheDetailsPage(
-                              contactName: data.title,
-                              avatarUrl: data.avatarUrl,
-                              isOnline: true,
-                            ),
+                      onPressed: () async {
+                        final friendId = data.actionPayload ??
+                            DateTime.now().millisecondsSinceEpoch.toString();
+                        final targetId = int.tryParse(friendId);
+
+                        final newFriend = FriendItem(
+                          id: friendId,
+                          name: data.title,
+                          status: 'Đang hoạt động',
+                          isOnline: true,
+                          avatarUrl: data.avatarUrl,
+                        );
+
+                        await FriendRemoteDataSourceImpl.instance
+                            .addFriend(newFriend);
+
+                        try {
+                          await FriendApiClient().sendFriendRequest(
+                            targetUserId: targetId,
+                            qrData: data.rawValue,
+                          );
+                        } catch (_) {}
+
+                        if (targetId != null && targetId > 0) {
+                          try {
+                            final profile = await AccountRemoteDataSourceImpl().getUserProfile();
+                            await SignalRService.instance.sendFriendRequestNotification(
+                              targetUserId: targetId,
+                              senderName: profile.fullName,
+                            );
+                          } catch (_) {}
+                        }
+
+                        unawaited(FriendRemoteDataSourceImpl.instance.syncWithDatabase());
+
+                        ChatRemoteDataSourceImpl.instance.addOrUpdateChat(
+                          ChatItem(
+                            id: friendId,
+                            name: data.title,
+                            lastMessage: 'Bắt đầu cuộc trò chuyện',
+                            time: 'Vừa xong',
+                            unreadCount: 0,
+                            isOnline: true,
+                            avatarUrl: data.avatarUrl,
                           ),
                         );
+
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => SendTheDetailsPage(
+                                contactName: data.title,
+                                avatarUrl: data.avatarUrl,
+                                isOnline: true,
+                                targetUserId: friendId,
+                              ),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),

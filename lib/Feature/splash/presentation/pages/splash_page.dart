@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:minichatapp/Feature/home/presentation/pages/home_page.dart';
 import 'package:minichatapp/Feature/langding/page/langding_page.dart';
+import 'package:minichatapp/Feature/friend/data/datasources/friend_remote_datasource.dart';
+import 'package:minichatapp/core/network/signalr_service.dart';
+import 'package:minichatapp/core/session/auth_session_manager.dart';
+import 'package:minichatapp/core/storage/token_storage.dart';
 import 'package:minichatapp/l10n/app_localizations.dart';
 import '../../data/datasources/splash_local_datasource.dart';
 import '../../data/repositories/splash_repository_impl.dart';
@@ -45,18 +50,40 @@ class _SplashView extends StatelessWidget {
     return BlocListener<SplashBloc, SplashState>(
       listener: (context, state) {
         if (state is SplashSuccess) {
-          // Navigate to LandingPage with smooth fade transition
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  const LangdingPage(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 600),
-            ),
-          );
+          if (state.isAuthenticated) {
+            // Đã đăng nhập: Khởi tạo realtime và vào thẳng trang chính
+            TokenStorage.instance.getUserEmail().then((email) {
+              TokenStorage.instance.getUserId().then((uid) {
+                AuthSessionManager.instance.onLoginSuccess(email: email, userId: uid);
+                SignalRService.instance.initSignalR(email: email, userId: uid);
+                FriendRemoteDataSourceImpl.instance.syncWithDatabase();
+              });
+            });
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const HomePage(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                transitionDuration: const Duration(milliseconds: 600),
+              ),
+            );
+          } else {
+            // Chưa đăng nhập: Điều hướng tới LandingPage
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const LangdingPage(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                transitionDuration: const Duration(milliseconds: 600),
+              ),
+            );
+          }
         }
       },
       child: Scaffold(
